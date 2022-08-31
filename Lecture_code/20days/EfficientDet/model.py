@@ -1,3 +1,4 @@
+
 from math import ceil
 
 import tensorflow as tf
@@ -7,10 +8,20 @@ from tensorflow.keras.layers import (BatchNormalization, Conv2D, Dense,
                                      GlobalAveragePooling2D, Layer, Multiply,
                                      ReLU, Reshape)
 
+from io import SEEK_CUR
+import tensorflow as tf
+from tensorflow.keras import Model
+from tensorflow.keras.layers import (BatchNormalization, Conv2D, Dense,
+                                     DepthwiseConv2D, Dropout, ReLU,
+                                     GlobalAveragePooling2D, Layer)
+
+
 
 class Swish(Layer):
     def __init__(self, **kwargs):
-        pass
+        super(SE, self).__init__(**kwargs)
+        
+       
 
     def call(self, x):
         return x * ReLU()(x + 3) / 6
@@ -23,6 +34,7 @@ class SE(Layer):
         self.se_filters = max(1, int(filters / reduction_ratio))
 
     def call(self, inputs):
+
         # in dims = [batch, H, W, channels]
         # out dims = [batch, 1, 1, channels]        @GlobalAveragePooling2D
         # out dims = [batch, 1, 1, channels/ratio]  @Conv2D_1
@@ -33,12 +45,28 @@ class SE(Layer):
         return Multiply()([inputs, x])
 
 
+        x = GlobalAveragePooling2D()(inputs)
+        x = Conv2D()(x)
+        x = Conv2D()(x)
+
+class Swish(Layer):
+    def __init__(self, **kwargs):
+        super().__init__(self, **kwargs)
+
+    def call(self, x):
+        return x * ReLU()(x + 3) / 6
+
+
 class MBCov1(Layer):
     def __init__(self, **kwargs):
         pass
 
     def call(self, inputs):
+
         x = DepthwiseConv2D()(input)
+
+        x = DepthwiseConv2D()(inputs)
+
         x = BatchNormalization()(x)
         x = Swish()(x)
         x = SE()(x)
@@ -55,6 +83,7 @@ class MBCov6(Layer):
         self.padding = "valid" if strides == 2 else "same"
 
     def call(self, inputs):
+
         # NOTE: Layer에 필요한 args(filters, kernel_size, strides, padding)
         # NOTE: filters == channel of out_dims
         # NOTE: ((W - k + 2P) / S) + 1
@@ -75,6 +104,14 @@ class MBCov6(Layer):
         x = Swish()(x)
         x = SE(self.filters)(x)
         x = Conv2D(self.filters_out, kernel_size=(1, 1), strides=1, padding="same")(x)
+
+        x = Conv2D()(inputs)
+        x = BatchNormalization()(x)
+        x = Swish()(x)
+        x = DepthwiseConv2D()(x)
+        x = SE()(x)
+        x = Conv2D()(x)
+
         return BatchNormalization()(x)
 
 
