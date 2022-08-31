@@ -4,7 +4,7 @@ from tensorflow.keras.layers import Conv2D, Dense, Flatten, MaxPool2D
 class VGG(Model):
     def __init__(self, **kwargs):
         super(VGG, self).__init__(**kwargs)
-        self.input_conv = Conv2D(
+        Conv2D(
             input_shape=(32,32,3),
             filters=64,
             kernel_size=(3,3),
@@ -36,7 +36,7 @@ class VGG(Model):
         self.out_dense = Dense(units=10)
 
     def call(self, inputs):
-        x = self.input_conv(inputs)
+        x = inputs
         x = self.conv_1(x)
         x = self.max_pool(x)
 
